@@ -1,79 +1,91 @@
 //
-//  main.cpp
-//  PRN
+//  Bin2Dec.c
+//  Bin2Dec
 //
-//  Created by Isabella Lee on 12/29/16.
+//  Created by Isabella Lee on 12/28/16.
 //  Copyright © 2016 Isabella Lee. All rights reserved.
 //
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include "Stack.h"
-#include "Stack.c"
+#include <math.h>
 
-int main() {
+#define STACK_INIT_SIZE 20
+#define STACKINCREMENT 10
+
+typedef char ElemType;
+//ASCII 49 1 50 0
+
+typedef struct{
+    ElemType *base;
+    ElemType *top;
+    int stackSize;
+}Stack;
+
+void InitStack(Stack *s){
+    s->base = (ElemType *)malloc(STACK_INIT_SIZE * sizeof(ElemType));
+    if(!s->base) return;
     
-    sqStack s;
-    char c;
-    double d, e;
-    char str[MAXBUFFER];
-    int i = 0;
+    s->top = s->base;
+    s->stackSize = STACK_INIT_SIZE;
+}
+
+void Push(Stack *s, ElemType e){
+    //上溢出
+    if(s->top - s->base >= s->stackSize){
+        s->base = (ElemType *)realloc(s->base, (s->stackSize + STACKINCREMENT)*sizeof(ElemType));
+        s->stackSize += STACKINCREMENT;
+        if(!s->base)
+            return;
+    }
     
+    *(s->top) = e;
+    s->top++;
+}
+
+//how about return nothing?
+//修改传指针，测试传变量值
+void Pop(Stack *s, ElemType *e){
+    //下溢出
+    if(s->top == s->base) return;
+    *e = *--(s->top);
+    
+}
+
+//修改传指针，测试传变量值
+int StackLen(Stack s){
+    return (int)(s.top - s.base); //s.top - s.base is actually a value of long type
+}
+
+
+int main(){
+    
+    Stack s;
     InitStack(&s);
-    printf("Please input the operation expression: ");
+    ElemType c;
+    int len, i, sum = 0;
+    printf("Please input a binary value ending with #: ");
     scanf("%c", &c);
-    
-    while (c != '#') //end with #
-    {
-        while (isdigit(c) || c == '.') {
-            str[i++] = c;
-            str[i] = '\0';
-            if(i >= MAXBUFFER){
-                printf("Error");
-                return -1;
-            }
-            scanf("%c", &c);
-            if(c ==' ')
-            {
-                d = atof(str);
-                Push(&s, d);
-                i = 0;
-            }
-        }
-        switch (c) {
-            case '+':
-                Pop(&s, &e);
-                Pop(&s, &d);
-                Push(&s, d + e);
-                break;
-            case '-':
-                Pop(&s, &e);
-                Pop(&s, &d);
-                Push(&s, d - e);
-                break;
-            case '*':
-                Pop(&s, &e);
-                Pop(&s, &d);
-                Push(&s, d * e);
-                break;
-            case '/':
-                Pop(&s, &e);
-                Pop(&s, &d);
-                if (e != 0) {
-                     Push(&s, d / e);
-                }else {
-                    printf("Error.\n");
-                    return -1;
-                }
-                break;
-        }
+    /*
+     if scanf("%d", d), say user inputs 1110000, 1110000 will be taken as a whole to read into the complier as a digit instead of seprate 1s and 0s.
+     */
+    while (c !='#') {
+        Push(&s, c);
         scanf("%c", &c);
     }
     
-    Pop(&s, &d);
-    printf("Result: %f\n", d);
-
+    getchar(); // 把'\n'从缓冲区去掉
+    
+    len = StackLen(s);
+    printf("The size of the stack is: %d\n", len);
+    
+    for(i = 0; i < len; i++) {
+        Pop(&s, &c);
+        sum = sum + (c-48)*pow(2, i);
+    }
+    
+    printf("The decimal value is: %d\n", sum);
+    
     return 0;
 }
 
